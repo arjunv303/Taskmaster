@@ -7,7 +7,13 @@ const dotenv = require('dotenv');
 dotenv.config();
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+    origin: 'http://localhost:3001', // Allow requests from your frontend origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed HTTP methods
+    credentials: true, // Allow cookies if needed
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -46,5 +52,5 @@ app.delete('/tasks/:id', async (req, res) => {
     res.json({ message: 'Task deleted' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
