@@ -68,3 +68,4 @@ app.delete('/tasks/:id', async (req, res) => {
 // Start the server on the specified port
 const PORT = process.env.PORT || 5002;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//To start MongoDb you have to navigate to cd TaskMaster/server and once your in the server folder you should enter npm start and then you will see a message that says "MongoDB Connected" 
