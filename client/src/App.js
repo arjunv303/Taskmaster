@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const App = () => {
-  const [tasks, setTasks] = useState([]);
+  // States to manage tasks, task input form, and task filtering
+  const [tasks, setTasks] = useState([]); // All tasks fetched from the backend
   const [task, setTask] = useState({ 
     title: '', 
     description: '', 
     priority: 'Medium', 
     deadline: '' 
-  });
-  const [filter, setFilter] = useState('All');
+  }); // Form data for creating or editing a task
+  const [filter, setFilter] = useState('All'); // Filter: All, Completed, or Pending tasks
 
+  // Fetch tasks from the backend when the component loads
   useEffect(() => {
     axios.get('http://localhost:5002/tasks')
       .then((res) => setTasks(res.data))
@@ -20,10 +22,12 @@ const App = () => {
       });
   }, []);
 
+  // Update task input fields as the user types
   const handleInputChange = (e) => {
     setTask({ ...task, [e.target.name]: e.target.value });
   };
 
+  // Add a new task and reset the input form
   const addTask = () => {
     if (!task.title.trim()) {
       alert("Task title cannot be empty!");
@@ -32,8 +36,8 @@ const App = () => {
 
     axios.post('http://localhost:5002/tasks', task)
       .then((res) => {
-        setTasks([...tasks, res.data]);
-        setTask({ title: '', description: '', priority: 'Medium', deadline: '' });
+        setTasks([...tasks, res.data]); // Update the task list with the new task
+        setTask({ title: '', description: '', priority: 'Medium', deadline: '' }); // Clear the form
       })
       .catch((error) => {
         console.error("Error adding task:", error);
@@ -41,10 +45,11 @@ const App = () => {
       });
   };
 
+  // Delete a task by ID
   const deleteTask = (id) => {
     axios.delete(`http://localhost:5002/tasks/${id}`)
       .then(() => {
-        setTasks(tasks.filter((t) => t._id !== id));
+        setTasks(tasks.filter((t) => t._id !== id)); // Remove the deleted task from the list
       })
       .catch((error) => {
         console.error("Error deleting task:", error);
@@ -52,13 +57,14 @@ const App = () => {
       });
   };
 
+  // Toggle the completion status of a task
   const toggleComplete = (id) => {
-    const taskToUpdate = tasks.find((t) => t._id === id);
-    const updatedTask = { ...taskToUpdate, completed: !taskToUpdate.completed };
-    
+    const taskToUpdate = tasks.find((t) => t._id === id); // Find the task to update
+    const updatedTask = { ...taskToUpdate, completed: !taskToUpdate.completed }; // Toggle 'completed' status
+
     axios.put(`http://localhost:5002/tasks/${id}`, updatedTask)
       .then((res) => {
-        setTasks(tasks.map((t) => (t._id === id ? res.data : t)));
+        setTasks(tasks.map((t) => (t._id === id ? res.data : t))); // Update the task in the list
       })
       .catch((error) => {
         console.error("Error updating task:", error);
@@ -66,12 +72,12 @@ const App = () => {
       });
   };
 
-  // Calculate total tasks and task statistics
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((t) => t.completed).length;
-  const pendingTasks = tasks.filter((t) => !t.completed).length;
+  // Calculate task statistics
+  const totalTasks = tasks.length; // Total number of tasks
+  const completedTasks = tasks.filter((t) => t.completed).length; // Number of completed tasks
+  const pendingTasks = tasks.filter((t) => !t.completed).length; // Number of pending tasks
 
-  // Calculate percentages with safe division
+  // Calculate percentages for progress bars
   const completedPercentage = totalTasks > 0 
     ? Math.round((completedTasks / totalTasks) * 100) 
     : 0;
@@ -80,6 +86,7 @@ const App = () => {
     ? Math.round((pendingTasks / totalTasks) * 100) 
     : 0;
 
+  // Filter tasks for display
   const filteredTasks = tasks.filter((t) =>
     filter === 'All' 
       ? true 
@@ -103,6 +110,7 @@ const App = () => {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Create New Task</h2>
             
+            {/* Input fields for task title, description, priority, and deadline */}
             <input 
               type="text"
               name="title"
@@ -147,29 +155,6 @@ const App = () => {
             >
               Add Task
             </button>
-
-            {/* Task Statistics */}
-            <div className="mt-4 bg-gray-50 p-4 rounded-md">
-              <h3 className="text-lg font-semibold mb-2">Task Overview</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Total Tasks:</span>
-                  <span className="font-bold">{totalTasks}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Completed Tasks:</span>
-                  <span className="font-bold text-green-600">
-                    {completedTasks} ({completedPercentage}%)
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pending Tasks:</span>
-                  <span className="font-bold text-red-600">
-                    {pendingTasks} ({pendingPercentage}%)
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Task List */}
@@ -181,9 +166,7 @@ const App = () => {
                   key={filterType}
                   onClick={() => setFilter(filterType)}
                   className={`px-4 py-2 rounded-full text-sm ${
-                    filter === filterType 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-gray-200 text-gray-700'
+                    filter === filterType ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'
                   }`}
                 >
                   {filterType}
@@ -191,48 +174,13 @@ const App = () => {
               ))}
             </div>
 
-            {/* Progress Bars */}
-            <div className="space-y-4 mb-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span>Completed Tasks</span>
-                  <span>{completedPercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-green-500 h-2.5 rounded-full" 
-                    style={{ width: `${completedPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span>Pending Tasks</span>
-                  <span>{pendingPercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-red-500 h-2.5 rounded-full" 
-                    style={{ width: `${pendingPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Task List */}
+            {/* Display the filtered list of tasks */}
             <div className="space-y-4 max-h-[400px] overflow-y-auto">
               {filteredTasks.map((t) => (
                 <div 
                   key={t._id} 
                   className={`p-4 rounded-md flex justify-between items-center ${
-                    t.completed 
-                      ? 'bg-green-50 opacity-70' 
-                      : t.priority === 'High' 
-                        ? 'bg-red-50' 
-                        : t.priority === 'Medium' 
-                          ? 'bg-yellow-50' 
-                          : 'bg-green-50'
+                    t.completed ? 'bg-green-50 opacity-70' : ''
                   }`}
                 >
                   <div>
@@ -240,22 +188,6 @@ const App = () => {
                       {t.title}
                     </h3>
                     <p className="text-sm text-gray-600">{t.description}</p>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <span 
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          t.priority === 'High'
-                            ? 'bg-red-200 text-red-800'
-                            : t.priority === 'Medium'
-                              ? 'bg-yellow-200 text-yellow-800'
-                              : 'bg-green-200 text-green-800'
-                        }`}
-                      >
-                        {t.priority}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(t.deadline).toLocaleDateString()}
-                      </span>
-                    </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input 
